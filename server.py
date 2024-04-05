@@ -1,20 +1,22 @@
 import socket
+import threading
 
 sock = socket.socket()
-sock.bind(('127.0.0.1', 9090))
-sock.listen(0)
-conn, addr = sock.accept()
-print(addr)
+sock.bind(('', 9090))
+sock.listen(5)
+print('Server is listing')
+def listen(conn, addr):
+	while True:
+		data = conn.recv(1024)
+		msg = data.decode()
+		if not data:
+			break
+		conn.send(data)
+		print(msg)
+	conn.close()
 
 msg = ''
-
 while True:
-	data = conn.recv(1024)
-	if not data:
-		break
-	msg += data.decode()
-	conn.send(data)
-
-print(msg)
-
-conn.close()
+	conn, addr = sock.accept()
+	print(addr)
+	threading.Thread(target=listen, args=(conn, addr)).start()
