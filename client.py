@@ -1,16 +1,34 @@
 import socket
-from time import sleep
+import threading
+import os
+import json
+def load_users():
+    try:
+        with open("users.json", "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+users = load_users()
+def listen(s: socket.socket):
+    while True:
+        msg = s.recv(2048)
+        print('\r\r' + msg.decode() + '\n' + f'you: ', end='')
 
-sock = socket.socket()
-sock.setblocking(1)
-sock.connect(('localhost', 9090))
 
-msg = input('msg: ')
+def connect(host='127.0.0.1', port=9090):
+    s = socket.socket()
 
-sock.send(msg.encode())
+    s.connect((host, port))
 
-data = sock.recv(1024)
+    threading.Thread(target=listen, args=(s,), daemon=True).start()
 
-sock.close()
+    while True:
+        msg = input(f'you: ')
+        s.send(msg.encode())
 
-print(data.decode())
+
+if __name__ == '__main__':
+    os.system('clear')
+    print('Welcome to chat!')
+    connect()
+
